@@ -1,2 +1,67 @@
-# efficient-transformer-systems
-Hands-on experiments in transformer profiling, attention optimisation, quantisation, and inference efficiency.
+# Efficient Transformer Systems
+
+A seven-day systems laboratory for understanding the memory and compute trade-offs
+behind transformer inference. The project begins with transparent analytical
+accounting, then progresses towards measured profiling, attention and KV-cache
+experiments, quantisation, and reproducible efficiency comparisons.
+
+## Day 1: make architectural costs explicit
+
+The first layer provides validated parameter and memory accounting for a dense,
+decoder-only, pre-normalised transformer. Its assumptions are declared rather
+than hidden inside a model implementation:
+
+- multi-head or grouped-query attention;
+- a two-projection GELU feed-forward block;
+- two normalisations per layer plus a final normalisation;
+- optional biases and learned positional embeddings; and
+- tied or untied token/output embeddings.
+
+The memory estimator reports two quantities with different scaling behaviour.
+The KV cache covers all layers; the attention-score estimate is per layer:
+
+\[
+\text{KV bytes} = B L S \cdot 2 H_{kv} D_h \cdot \text{bytes per element}
+\]
+
+\[
+\text{attention-score bytes} = B H S^2 \cdot \text{bytes per element}
+\]
+
+KV-cache storage grows linearly with sequence length. A conventional materialised
+attention-score matrix grows quadratically; fused attention kernels need not store
+that full matrix. These estimates describe storage implied by explicit assumptions,
+not measured peak memory or latency on a particular device.
+
+## Reproducible reference profile
+
+The included script profiles a decoder with width 4096, 32 layers, 32 query
+heads, 8 key/value heads, feed-forward width 11008, and tied embeddings across
+context lengths from 128 to 8192 tokens:
+
+    python -m venv .venv
+    source .venv/bin/activate
+    python -m pip install -e ".[dev]"
+    python scripts/profile_reference_model.py
+    python -m pytest
+
+The JSON output is labelled as analytical. No hardware timing, throughput,
+kernel behaviour, allocator overhead, or measured peak memory is implied.
+
+## Evaluation principles
+
+- State architectural assumptions before presenting a parameter count.
+- Keep analytical estimates separate from empirical measurements.
+- Report batch size, sequence length, data type, and KV-head count with memory.
+- Distinguish model weights, activations, attention workspaces, and KV cache.
+- Treat theoretical savings as hypotheses until the implementation is profiled.
+
+## Planned progression
+
+1. Parameter and memory accounting with explicit assumptions (complete)
+2. CPU/GPU timing harness with warm-up and synchronisation
+3. Attention implementation and sequence-length scaling study
+4. KV-cache decoding experiment and grouped-query comparison
+5. Weight-only quantisation and accuracy/memory trade-offs
+6. Throughput, latency, and memory benchmark matrix
+7. Reproducible systems report and portfolio integration
