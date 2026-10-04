@@ -7,6 +7,7 @@ name = "efficient-transformer-systems"
 version = "0.1.0"
 description = "Analytical and empirical experiments for efficient transformer inference"
 requires-python = ">=3.10"
+dependencies = ["numpy>=2.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]

@@ -48,6 +48,36 @@ context lengths from 128 to 8192 tokens:
 The JSON output is labelled as analytical. No hardware timing, throughput,
 kernel behaviour, allocator overhead, or measured peak memory is implied.
 
+## Day 2: measure before optimising
+
+The timing layer separates warm-up from recorded repetitions, preserves every
+sample, and reports median and interquartile range rather than relying on one
+favourable run. A caller may provide a synchronisation callback, which is
+required when an accelerator launches work asynchronously.
+
+The first empirical workload is a readable NumPy implementation of dense scaled
+dot-product attention. It is a reference and profiling fixture, not a claim to
+match a fused production kernel. Reproduce the CPU sweep with:
+
+    OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+      python scripts/benchmark_attention.py
+
+One measured run in the development environment used Python 3.12.14, NumPy
+2.3.5, Linux x86_64, float32 inputs, four heads, head width 64, three warm-up
+iterations, and ten recorded repetitions:
+
+| Sequence length | Score elements | Median latency | IQR |
+|---:|---:|---:|---:|
+| 64 | 16,384 | 0.102 ms | 0.008 ms |
+| 128 | 65,536 | 0.462 ms | 0.032 ms |
+| 256 | 262,144 | 1.251 ms | 0.060 ms |
+| 512 | 1,048,576 | 5.673 ms | 0.330 ms |
+
+These measurements characterise this particular runtime. They do not predict
+PyTorch, MPS, CUDA, production batch sizes, or end-to-end model latency. The raw
+samples are emitted as JSON so later runs can be compared without discarding
+variation.
+
 ## Evaluation principles
 
 - State architectural assumptions before presenting a parameter count.
@@ -59,8 +89,8 @@ kernel behaviour, allocator overhead, or measured peak memory is implied.
 ## Planned progression
 
 1. Parameter and memory accounting with explicit assumptions (complete)
-2. CPU/GPU timing harness with warm-up and synchronisation
-3. Attention implementation and sequence-length scaling study
+2. CPU timing harness with warm-up, synchronisation hooks, and robust summaries (complete)
+3. PyTorch attention backends and sequence-length scaling study
 4. KV-cache decoding experiment and grouped-query comparison
 5. Weight-only quantisation and accuracy/memory trade-offs
 6. Throughput, latency, and memory benchmark matrix
