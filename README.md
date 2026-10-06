@@ -115,6 +115,37 @@ must not be interpreted as the performance of FlashAttention or another fused
 kernel. Its purpose is to expose the online-softmax invariant and the memory-time
 trade-off before moving to framework-specific implementations.
 
+## Day 4: separate KV storage savings from decode work
+
+The cache implementation preallocates key and value tensors, appends complete
+chunks only after validation, and exposes both logical and allocated storage.
+Single-token grouped-query attention reshapes query heads into groups and uses
+the corresponding KV head directly; it does not materialise repeated KV tensors.
+
+This distinction matters. Reducing eight KV heads to two cuts persistent cache
+storage by four, but all eight query heads still score the entire cached prefix.
+The experiment therefore measures storage and latency separately:
+
+    OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+      python scripts/benchmark_kv_cache.py
+
+One development-environment run used Python 3.12.14, NumPy 2.3.5, Linux x86_64,
+float32 inputs, eight query heads, head width 64, three warm-up iterations, and
+ten recorded repetitions. Each cache was filled to its declared capacity.
+
+| Context | MHA cache | GQA cache | Reduction | MHA median | GQA median | GQA / MHA |
+|---:|---:|---:|---:|---:|---:|---:|
+| 128 | 0.50 MiB | 0.125 MiB | 4x | 0.071 ms | 0.065 ms | 0.92x |
+| 512 | 2.00 MiB | 0.50 MiB | 4x | 0.145 ms | 0.142 ms | 0.98x |
+| 2,048 | 8.00 MiB | 2.00 MiB | 4x | 0.422 ms | 0.462 ms | 1.10x |
+| 4,096 | 16.00 MiB | 4.00 MiB | 4x | 0.800 ms | 0.868 ms | 1.09x |
+
+The storage reduction is exact for this head configuration. Latency was almost
+unchanged and GQA became modestly slower at the two longest contexts. Both paths
+computed the same number of attention-score elements, and this readable NumPy
+prototype has no fused GQA kernel. These timings characterise one CPU run; they
+do not establish accelerator or end-to-end generation performance.
+
 ## Evaluation principles
 
 - State architectural assumptions before presenting a parameter count.
@@ -128,7 +159,7 @@ trade-off before moving to framework-specific implementations.
 1. Parameter and memory accounting with explicit assumptions (complete)
 2. CPU timing harness with warm-up, synchronisation hooks, and robust summaries (complete)
 3. Exact blockwise attention and sequence-length scaling study (complete)
-4. KV-cache decoding experiment and grouped-query comparison
+4. KV-cache decoding experiment and grouped-query comparison (complete)
 5. Weight-only quantisation and accuracy/memory trade-offs
 6. Throughput, latency, and memory benchmark matrix
 7. Reproducible systems report and portfolio integration

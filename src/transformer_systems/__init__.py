@@ -11,9 +11,12 @@ from .accounting import (
 from .config import TransformerConfig
 from .benchmarking import TimingSummary, benchmark_callable, summarise_timings
 from .attention import blockwise_attention, dense_attention, score_workspace_elements
+from .kv_cache import KVCache, KVCacheStats, grouped_query_decode
 
 __all__ = [
     "MemoryEstimate",
+    "KVCache",
+    "KVCacheStats",
     "ParameterBreakdown",
     "TimingSummary",
     "TransformerConfig",
@@ -22,6 +25,7 @@ __all__ = [
     "count_parameters",
     "dense_attention",
     "estimate_memory",
+    "grouped_query_decode",
     "maximum_cached_tokens",
     "profile_sequence_lengths",
     "score_workspace_elements",
