@@ -146,6 +146,42 @@ computed the same number of attention-score elements, and this readable NumPy
 prototype has no fused GQA kernel. These timings characterise one CPU run; they
 do not establish accelerator or end-to-end generation performance.
 
+## Day 5: quantify compression, error, and execution separately
+
+The weight-only reference uses symmetric INT8 values with either one scale for
+the complete matrix or one scale per output channel. It stores the quantised
+weights persistently, then dequantises to float32 inside each linear-layer call.
+That transparent path isolates numerical error, but it is deliberately not an
+optimised integer matrix-multiplication kernel.
+
+Run the comparison with:
+
+    OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+      python scripts/benchmark_weight_quantization.py
+
+One measured run used a `1024x1024` weight matrix whose output-channel
+magnitudes varied geometrically from `0.1` to `10.0`. Inputs and weights were
+generated with a fixed seed. Three warm-up iterations preceded ten recorded
+repetitions.
+
+| Representation | Persistent storage | Compression | Weight relative RMSE |
+|---|---:|---:|---:|
+| FP32 | 4.000 MiB | 1.00x | 0 |
+| INT8, per tensor | 1.000 MiB | 4.00x | 2.788% |
+| INT8, per output channel | 1.004 MiB | 3.98x | 0.782% |
+
+| Tokens | FP32 median | Per-tensor median | Per-channel median | Per-channel output RMSE |
+|---:|---:|---:|---:|---:|
+| 1 | 0.054 ms | 0.263 ms | 0.410 ms | 0.762% |
+| 32 | 1.531 ms | 1.800 ms | 1.957 ms | 0.784% |
+
+Per-channel metadata cost only 4 KiB more than per-tensor scaling while reducing
+weight reconstruction error by roughly 3.6x on this deliberately heterogeneous
+fixture. The reference remained slower than FP32 because every call materialised
+a dequantised float32 matrix. Storage compression, numerical fidelity, and
+kernel speed are therefore reported as distinct outcomes. The error values are
+not language-model accuracy or perplexity measurements.
+
 ## Evaluation principles
 
 - State architectural assumptions before presenting a parameter count.
@@ -160,6 +196,6 @@ do not establish accelerator or end-to-end generation performance.
 2. CPU timing harness with warm-up, synchronisation hooks, and robust summaries (complete)
 3. Exact blockwise attention and sequence-length scaling study (complete)
 4. KV-cache decoding experiment and grouped-query comparison (complete)
-5. Weight-only quantisation and accuracy/memory trade-offs
+5. Weight-only quantisation and accuracy/memory trade-offs (complete)
 6. Throughput, latency, and memory benchmark matrix
 7. Reproducible systems report and portfolio integration
