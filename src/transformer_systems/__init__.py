@@ -10,6 +10,11 @@ from .accounting import (
 )
 from .config import TransformerConfig
 from .benchmarking import TimingSummary, benchmark_callable, summarise_timings
+from .efficiency import (
+    EfficiencyComparison,
+    EfficiencyMeasurement,
+    compare_efficiency,
+)
 from .attention import blockwise_attention, dense_attention, score_workspace_elements
 from .kv_cache import KVCache, KVCacheStats, grouped_query_decode
 from .quantization import (
@@ -22,6 +27,8 @@ from .quantization import (
 
 __all__ = [
     "MemoryEstimate",
+    "EfficiencyComparison",
+    "EfficiencyMeasurement",
     "KVCache",
     "KVCacheStats",
     "ParameterBreakdown",
@@ -31,6 +38,7 @@ __all__ = [
     "benchmark_callable",
     "blockwise_attention",
     "count_parameters",
+    "compare_efficiency",
     "dense_attention",
     "dequantize_weights",
     "estimate_memory",

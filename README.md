@@ -182,6 +182,43 @@ a dequantised float32 matrix. Storage compression, numerical fidelity, and
 kernel speed are therefore reported as distinct outcomes. The error values are
 not language-model accuracy or perplexity measurements.
 
+## Day 6: compare efficiency with explicit contracts
+
+The efficiency matrix puts the three reference workloads behind one reporting
+contract: median latency, IQR, useful-work throughput, persistent state,
+declared workspace, and numerical error. Comparisons are permitted only within
+the same workload and useful-work definition. This prevents, for example,
+prefill query-token throughput from being compared directly with generated-token
+decode throughput.
+
+Run the fixed-seed CPU matrix with:
+
+    OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+      python scripts/build_efficiency_matrix.py
+
+One development-environment run used Python 3.12.14, NumPy 2.3.5, Linux x86_64,
+three warm-up iterations, and ten recorded repetitions.
+
+| Workload and candidate | Baseline | Candidate median | Baseline median | Candidate throughput | Baseline throughput | Primary state trade-off | Error |
+|---|---|---:|---:|---:|---:|---|---:|
+| Prefill, blockwise-64 | Dense | 12.943 ms | 8.795 ms | 39,557 query tokens/s | 58,217 query tokens/s | 64 KiB vs 4 MiB workspace | 2.38e-7 max abs. |
+| Decode, GQA with 2 KV heads | MHA with 8 KV heads | 1.292 ms | 1.737 ms | 774 generated tokens/s | 576 generated tokens/s | 4 MiB vs 16 MiB persistent cache | 0 max abs. |
+| Linear, per-channel INT8 reference | FP32 | 4.945 ms | 2.101 ms | 6,471 input tokens/s | 15,231 input tokens/s | 1.004 MiB vs 4 MiB persistent weights; 4 MiB vs 0 declared workspace | 0.766% relative RMSE |
+
+The blockwise path reduced analytical attention workspace by 64x but was 47.2%
+slower in this readable CPU implementation. The equivalent-cache GQA fixture
+reduced persistent KV state by 4x and was 25.7% faster. The INT8 reference
+reduced persistent weight storage by about 3.98x, yet was 2.35x slower because
+it created a float32 dequantised matrix on every call.
+
+The earlier Day 4 fixture used independently generated MHA and GQA caches and
+measured GQA 9% slower at context 4,096. Today's fixture repeats two KV heads
+to make the eight-head MHA baseline numerically equivalent, and it measured GQA
+faster with substantial timing variation. The architectural cache reduction is
+exact; neither isolated CPU timing should be treated as a universal kernel
+ranking. The byte counts above are declared persistent arrays and analytical
+workspace, excluding output arrays, allocator overhead, and process peak memory.
+
 ## Evaluation principles
 
 - State architectural assumptions before presenting a parameter count.
@@ -197,5 +234,5 @@ not language-model accuracy or perplexity measurements.
 3. Exact blockwise attention and sequence-length scaling study (complete)
 4. KV-cache decoding experiment and grouped-query comparison (complete)
 5. Weight-only quantisation and accuracy/memory trade-offs (complete)
-6. Throughput, latency, and memory benchmark matrix
+6. Throughput, latency, and memory benchmark matrix (complete)
 7. Reproducible systems report and portfolio integration
