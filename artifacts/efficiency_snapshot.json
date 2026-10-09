@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "title": "Efficient Transformer Systems Report",
+  "generated_at_utc": "2026-10-09T18:04:28.619256+00:00",
+  "evidence": {
+    "status": "measured NumPy CPU matrix; declared bytes are managed state/workspace, not process peak memory",
+    "configuration": {
+      "attention_sequence": 512,
+      "decode_context": 4096,
+      "linear_features": 1024,
+      "linear_tokens": 32,
+      "block_size": 64,
+      "warmup": 3,
+      "repetitions": 10,
+      "seed": 20
+    },
+    "environment": {
+      "python": "3.12.14",
+      "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+      "machine": "x86_64",
+      "processor": "x86_64",
+      "numpy": "2.3.5"
+    },
+    "records": [
+      {
+        "workload": "prefill_attention_s512",
+        "variant": "dense",
+        "useful_work": 512,
+        "work_unit": "query_tokens",
+        "throughput_per_second": 77286.92112831962,
+        "persistent_bytes": 0,
+        "workspace_bytes": 4194304,
+        "managed_bytes": 4194304,
+        "numerical_error": 0.0,
+        "timing": {
+          "repetitions": 10,
+          "median_seconds": 0.0066246655,
+          "q1_seconds": 0.0064364472499999995,
+          "q3_seconds": 0.00705192275,
+          "iqr_seconds": 0.0006154755000000005,
+          "minimum_seconds": 0.006162242,
+          "maximum_seconds": 0.007220659,
+          "samples_seconds": [
+            0.006233009,
+            0.007220659,
+            0.007117564,
+            0.006520613,
+            0.006162242,
+            0.006538951,
+            0.00698909,
+            0.007072867,
+            0.00671038,
+            0.006408392
+          ]
+        }
+      },
+      {
+        "workload": "prefill_attention_s512",
+        "variant": "blockwise_64",
+        "useful_work": 512,
+        "work_unit": "query_tokens",
+        "throughput_per_second": 65036.99042343019,
+        "persistent_bytes": 0,
+        "workspace_bytes": 65536,
+        "managed_bytes": 65536,
+        "numerical_error": 2.384185791015625e-07,
+        "timing": {
+          "repetitions": 10,
+          "median_seconds": 0.007872443,
+          "q1_seconds": 0.0076208084999999995,
+          "q3_seconds": 0.00818477275,
+          "iqr_seconds": 0.00056396425,
+          "minimum_seconds": 0.007115771,
+          "maximum_seconds": 0.008563476,
+          "samples_seconds": [
+            0.008278876,
+            0.007977602,
+            0.008193168,
+            0.007591369,
+            0.007767284,
+            0.007415113,
+            0.007115771,
+            0.007709127,
+            0.008563476,
+            0.008159587
+          ]
+        }
+      },
+      {
+        "workload": "single_token_decode_s4096",
+        "variant": "multi_head_8kv",
+        "useful_work": 1,
+        "work_unit": "generated_tokens",
+        "throughput_per_second": 1150.487173793743,
+        "persistent_bytes": 16777216,
+        "workspace_bytes": 131072,
+        "managed_bytes": 16908288,
+        "numerical_error": 0.0,
+        "timing": {
+          "repetitions": 10,
+          "median_seconds": 0.0008691969999999999,
+          "q1_seconds": 0.0008285402500000001,
+          "q3_seconds": 0.00088972575,
+          "iqr_seconds": 6.11854999999999e-05,
+          "minimum_seconds": 0.000798054,
+          "maximum_seconds": 0.000984105,
+          "samples_seconds": [
+            0.000798054,
+            0.000807649,
+            0.000865657,
+            0.000984105,
+            0.000918196,
+            0.000825726,
+            0.000886338,
+            0.000836983,
+            0.000890855,
+            0.000872737
+          ]
+        }
+      },
+      {
+        "workload": "single_token_decode_s4096",
+        "variant": "grouped_query_2kv",
+        "useful_work": 1,
+        "work_unit": "generated_tokens",
+        "throughput_per_second": 1059.277149273336,
+        "persistent_bytes": 4194304,
+        "workspace_bytes": 131072,
+        "managed_bytes": 4325376,
+        "numerical_error": 0.0,
+        "timing": {
+          "repetitions": 10,
+          "median_seconds": 0.0009440399999999999,
+          "q1_seconds": 0.000895472,
+          "q3_seconds": 0.00105450675,
+          "iqr_seconds": 0.00015903475,
+          "minimum_seconds": 0.000882993,
+          "maximum_seconds": 0.001615449,
+          "samples_seconds": [
+            0.000883443,
+            0.000913689,
+            0.001136656,
+            0.000892738,
+            0.001615449,
+            0.001069965,
+            0.001008132,
+            0.000974391,
+            0.000882993,
+            0.000903674
+          ]
+        }
+      },
+      {
+        "workload": "linear_1024x1024_t32",
+        "variant": "fp32",
+        "useful_work": 32,
+        "work_unit": "input_tokens",
+        "throughput_per_second": 22417.05601707059,
+        "persistent_bytes": 4194304,
+        "workspace_bytes": 0,
+        "managed_bytes": 4194304,
+        "numerical_error": 0.0,
+        "timing": {
+          "repetitions": 10,
+          "median_seconds": 0.0014274844999999999,
+          "q1_seconds": 0.0014099737500000002,
+          "q3_seconds": 0.00148107525,
+          "iqr_seconds": 7.11014999999998e-05,
+          "minimum_seconds": 0.001398802,
+          "maximum_seconds": 0.001800578,
+          "samples_seconds": [
+            0.00141738,
+            0.00153098,
+            0.001434084,
+            0.001398802,
+            0.001800578,
+            0.001407505,
+            0.001451421,
+            0.001405161,
+            0.001420885,
+            0.00149096
+          ]
+        }
+      },
+      {
+        "workload": "linear_1024x1024_t32",
+        "variant": "int8_per_channel_reference",
+        "useful_work": 32,
+        "work_unit": "input_tokens",
+        "throughput_per_second": 16909.239393349333,
+        "persistent_bytes": 1052672,
+        "workspace_bytes": 4194304,
+        "managed_bytes": 5246976,
+        "numerical_error": 0.007661265708398021,
+        "timing": {
+          "repetitions": 10,
+          "median_seconds": 0.0018924565,
+          "q1_seconds": 0.001857837,
+          "q3_seconds": 0.0019410145,
+          "iqr_seconds": 8.317749999999999e-05,
+          "minimum_seconds": 0.001784674,
+          "maximum_seconds": 0.002191377,
+          "samples_seconds": [
+            0.001855371,
+            0.001929973,
+            0.001944695,
+            0.001905436,
+            0.002191377,
+            0.001962953,
+            0.001879477,
+            0.001784674,
+            0.001811385,
+            0.001865235
+          ]
+        }
+      }
+    ],
+    "comparisons": [
+      {
+        "workload": "prefill_attention_s512",
+        "baseline": "dense",
+        "candidate": "blockwise_64",
+        "latency_ratio": 1.1883532836488122,
+        "throughput_ratio": 0.8415005989881412,
+        "persistent_bytes_ratio": 1.0,
+        "workspace_bytes_ratio": 0.015625
+      },
+      {
+        "workload": "single_token_decode_s4096",
+        "baseline": "multi_head_8kv",
+        "candidate": "grouped_query_2kv",
+        "latency_ratio": 1.0861059115482452,
+        "throughput_ratio": 0.9207205203169356,
+        "persistent_bytes_ratio": 0.25,
+        "workspace_bytes_ratio": 1.0
+      },
+      {
+        "workload": "linear_1024x1024_t32",
+        "baseline": "fp32",
+        "candidate": "int8_per_channel_reference",
+        "latency_ratio": 1.325728230324042,
+        "throughput_ratio": 0.7543024106498617,
+        "persistent_bytes_ratio": 0.2509765625,
+        "workspace_bytes_ratio": null
+      }
+    ]
+  },
+  "claim_boundaries": [
+    "Results describe one fixed-seed NumPy CPU microbenchmark run.",
+    "Declared bytes cover managed persistent state and analytical workspace, not process peak memory.",
+    "Throughput is comparable only within workloads sharing the same useful-work unit.",
+    "Numerical error is not a language-model quality, accuracy, or perplexity measurement.",
+    "CPU reference timings do not predict fused accelerator-kernel performance."
+  ]
+}

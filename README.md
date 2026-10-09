@@ -219,6 +219,33 @@ exact; neither isolated CPU timing should be treated as a universal kernel
 ranking. The byte counts above are declared persistent arrays and analytical
 workspace, excluding output arrays, allocator overhead, and process peak memory.
 
+## Day 7: publish one report from one evidence snapshot
+
+The final reporting layer executes the complete efficiency matrix once, validates
+its schema, then renders a human-readable systems report and machine-readable JSON
+from the same in-memory snapshot. It refuses incomplete records, non-positive
+timings, duplicate variants, and comparisons that do not point to measured
+workloads. This prevents a polished summary from quietly drifting away from the
+evidence it claims to describe.
+
+Generate and validate the portfolio artifacts with:
+
+    OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+      python scripts/build_systems_report.py
+    python -m pytest -q
+
+The generated outputs are:
+
+- `artifacts/SYSTEMS_REPORT.md`, for human review;
+- `artifacts/efficiency_snapshot.json`, containing the configuration,
+  environment, raw timing samples, derived comparisons, and claim boundaries.
+
+The report remains deliberately narrow. It describes transparent NumPy CPU
+references rather than fused production kernels, records managed arrays rather
+than process peak memory, and does not treat numerical agreement as language-model
+quality. Accelerator profiling and downstream model evaluation are therefore
+extensions, not results implied by this repository.
+
 ## Evaluation principles
 
 - State architectural assumptions before presenting a parameter count.
@@ -235,4 +262,4 @@ workspace, excluding output arrays, allocator overhead, and process peak memory.
 4. KV-cache decoding experiment and grouped-query comparison (complete)
 5. Weight-only quantisation and accuracy/memory trade-offs (complete)
 6. Throughput, latency, and memory benchmark matrix (complete)
-7. Reproducible systems report and portfolio integration
+7. Reproducible systems report and portfolio integration (complete)

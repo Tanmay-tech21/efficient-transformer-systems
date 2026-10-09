@@ -24,6 +24,12 @@ from .quantization import (
     relative_root_mean_square_error,
     weight_only_linear,
 )
+from .reporting import (
+    create_report_snapshot,
+    render_systems_report,
+    validate_efficiency_matrix,
+    write_report_artifacts,
+)
 
 __all__ = [
     "MemoryEstimate",
@@ -39,6 +45,7 @@ __all__ = [
     "blockwise_attention",
     "count_parameters",
     "compare_efficiency",
+    "create_report_snapshot",
     "dense_attention",
     "dequantize_weights",
     "estimate_memory",
@@ -46,8 +53,11 @@ __all__ = [
     "maximum_cached_tokens",
     "profile_sequence_lengths",
     "quantize_symmetric_int8",
+    "render_systems_report",
     "relative_root_mean_square_error",
     "score_workspace_elements",
     "summarise_timings",
+    "validate_efficiency_matrix",
     "weight_only_linear",
+    "write_report_artifacts",
 ]
